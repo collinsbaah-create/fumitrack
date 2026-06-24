@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="FumiTrack"/>
+<meta name="theme-color" content="#1A3A2A"/>
+<title>FumiTrack Office</title>
+<link rel="manifest" href="manifest_office.json"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#F0EDE6;--card:#FFF;--forest:#1A3A2A;--forest-light:#2D5A40;
+  --amber:#D4860B;--amber-light:#FEF3C7;--crimson:#B91C1C;--crimson-light:#FEE2E2;
+  --teal:#0E7490;--teal-light:#CFFAFE;--purple:#7C3AED;--purple-light:#EDE9FE;
+  --green:#16A34A;--green-light:#DCFCE7;
+  --text:#111827;--muted:#6B7280;--border:#E5E7EB;
+  --shadow:0 2px 8px rgba(0,0,0,0.08);--shadow-lg:0 8px 24px rgba(0,0,0,0.13);
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bot:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:var(--safe-bot);}
+
+/* SETUP */
+.setup-screen{position:fixed;inset:0;background:var(--forest);display:flex;align-items:center;justify-content:center;z-index:9999;padding-top:var(--safe-top);}
+.setup-box{background:white;border-radius:20px;padding:40px;width:480px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,0.4);}
+.setup-logo{text-align:center;margin-bottom:28px;}
+.setup-icon{width:72px;height:72px;border-radius:18px;overflow:hidden;display:inline-block;margin-bottom:12px;}
+.setup-icon img{width:100%;height:100%;}
+.setup-logo h1{font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;color:var(--forest);}
+.setup-logo p{font-size:13px;color:var(--muted);margin-top:4px;}
+.f-row{margin-bottom:16px;}
+.f-label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;}
+.f-input{width:100%;padding:11px 14px;border:2px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s;}
+.f-input:focus{border-color:var(--forest);}
+.f-hint{font-size:11px;color:var(--muted);margin-top:5px;}
+.f-hint a{color:var(--teal);}
+.btn-enter{width:100%;padding:14px;background:var(--forest);color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;}
+.btn-enter:hover{background:var(--forest-light);}
+.setup-err{color:var(--crimson);font-size:13px;margin-top:10px;text-align:center;display:none;}
+
+/* HEADER */
+header{background:var(--forest);color:white;padding:0 24px;padding-top:var(--safe-top);display:flex;align-items:center;justify-content:space-between;height:calc(64px + var(--safe-top));position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.25);}
+.logo{display:flex;align-items:center;gap:10px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:19px;}
+.logo-icon{width:34px;height:34px;border-radius:8px;overflow:hidden;}
+.logo-icon img{width:100%;height:100%;}
+.hdr-right{display:flex;align-items:center;gap:12px;}
+.live-pill{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;background:rgba(255,255,255,.12);padding:5px 11px;border-radius:20px;}
+.live-dot{width:7px;height:7px;background:#4ADE80;border-radius:50%;animation:lp 2s infinite;}
+@keyframes lp{0%,100%{opacity:1;}50%{opacity:.3;}}
+.sync-lbl{font-size:11px;opacity:.6;}
+.hdr-btn{padding:7px 13px;background:white;border:none;border-radius:7px;color:var(--forest);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;}
+.hdr-btn:hover{background:#E5E7EB;}
+
+/* NAV */
+.nav-tabs{background:var(--forest-light);display:flex;gap:2px;padding:8px 24px 0;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.nav-tab{padding:10px 15px;border:none;background:transparent;color:rgba(255,255,255,.65);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;border-radius:8px 8px 0 0;transition:all .2s;white-space:nowrap;}
+.nav-tab:hover{color:white;background:rgba(255,255,255,.1);}
+.nav-tab.active{background:var(--bg);color:var(--forest);font-weight:600;}
+
+main{padding:20px;max-width:1600px;margin:0 auto;}
+.tab-content{display:none;}.tab-content.active{display:block;}
+
+/* KPI */
+.kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:22px;}
+.kpi-card{background:var(--card);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow);border-left:4px solid var(--border);display:flex;align-items:center;gap:12px;}
+.kpi-card.s-avail{border-left-color:var(--green);}
+.kpi-card.s-inuse{border-left-color:var(--amber);}
+.kpi-card.s-pend{border-left-color:var(--purple);}
+.kpi-card.s-move{border-left-color:var(--teal);}
+.kpi-card.s-dmg{border-left-color:var(--crimson);}
+.kpi-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;}
+.kpi-card.s-avail .kpi-icon{background:var(--green-light);}
+.kpi-card.s-inuse .kpi-icon{background:var(--amber-light);}
+.kpi-card.s-pend .kpi-icon{background:var(--purple-light);}
+.kpi-card.s-move .kpi-icon{background:var(--teal-light);}
+.kpi-card.s-dmg .kpi-icon{background:var(--crimson-light);}
+.kpi-num{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:700;line-height:1;}
+.kpi-card.s-avail .kpi-num{color:var(--green);}
+.kpi-card.s-inuse .kpi-num{color:var(--amber);}
+.kpi-card.s-pend .kpi-num{color:var(--purple);}
+.kpi-card.s-move .kpi-num{color:var(--teal);}
+.kpi-card.s-dmg .kpi-num{color:var(--crimson);}
+.kpi-lbl{font-size:11px;color:var(--muted);font-weight:500;margin-top:2px;}
+
+/* SECTION TITLE */
+.sec-title{font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;color:var(--forest);margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.sec-title::after{content:'';flex:1;height:2px;background:var(--border);border-radius:1px;}
+
+/* BAG GRID */
+.grid-ctrl{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px;}
+.fbtn{padding:6px 13px;border-radius:20px;border:2px solid var(--border);background:white;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .2s;color:var(--muted);}
+.fbtn:hover,.fbtn.active{border-color:var(--forest);background:var(--forest);color:white;}
+.srch{padding:7px 14px;border-radius:20px;border:2px solid var(--border);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;width:185px;transition:border-color .2s;}
+.srch:focus{border-color:var(--forest);}
+
+.bag-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(152px,1fr));gap:10px;margin-bottom:20px;}
+.bag-card{background:var(--card);border-radius:12px;padding:13px;box-shadow:var(--shadow);cursor:pointer;transition:transform .2s,box-shadow .2s;border:2px solid transparent;position:relative;overflow:hidden;}
+.bag-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+.bag-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;}
+.bag-card.s-available::before{background:var(--green);}
+.bag-card.s-inuse::before{background:var(--amber);}
+.bag-card.s-pending::before{background:var(--purple);}
+.bag-card.s-tomove::before{background:var(--teal);}
+.bag-card.s-damaged::before{background:var(--crimson);}
+.bag-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;}
+.bag-id-lbl{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;color:var(--forest);}
+.sdot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.sdot.s-available{background:var(--green);animation:sp 2s infinite;}
+.sdot.s-inuse{background:var(--amber);animation:sp 1.5s infinite;}
+.sdot.s-pending{background:var(--purple);}
+.sdot.s-tomove{background:var(--teal);animation:sp 3s infinite;}
+.sdot.s-damaged{background:var(--crimson);}
+@keyframes sp{0%,100%{opacity:1;}50%{opacity:.4;}}
+.bag-loc{font-size:11px;color:var(--muted);font-weight:500;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sbadge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px;}
+.sb-available{background:var(--green-light);color:var(--green);}
+.sb-inuse{background:var(--amber-light);color:var(--amber);}
+.sb-pending{background:var(--purple-light);color:var(--purple);}
+.sb-tomove{background:var(--teal-light);color:var(--teal);}
+.sb-damaged{background:var(--crimson-light);color:var(--crimson);}
+.bag-off{font-size:10px;color:var(--muted);margin-top:3px;}
+.cap-bar{height:4px;background:#E5E7EB;border-radius:2px;overflow:hidden;margin-top:7px;}
+.cap-fill{height:100%;border-radius:2px;background:var(--forest);}
+.cap-lbl{font-size:10px;color:var(--muted);margin-top:2px;font-family:'Space Grotesk',sans-serif;}
+
+/* DETAIL */
+.detail-panel{display:none;background:white;border-radius:16px;padding:20px;box-shadow:var(--shadow-lg);margin-bottom:20px;border:2px solid var(--forest);}
+.detail-panel.open{display:block;}
+.dp-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;}
+.dp-id{font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;color:var(--forest);}
+.dp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;}
+.dil{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:3px;}
+.div2{font-size:14px;font-weight:600;}
+.he{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);align-items:flex-start;}
+.he:last-child{border-bottom:none;}
+.hdot{width:9px;height:9px;border-radius:50%;background:var(--teal);flex-shrink:0;margin-top:4px;}
+.htxt{flex:1;font-size:13px;}
+.hdt{font-size:11px;color:var(--muted);}
+
+/* TABLE */
+.tbl-wrap{background:white;border-radius:12px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:20px;}
+.tbl-bar{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--border);}
+table{width:100%;border-collapse:collapse;}
+thead{background:var(--forest);}
+thead th{padding:11px 13px;text-align:left;font-size:11px;font-weight:600;color:rgba(255,255,255,.85);letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;}
+tbody tr{border-bottom:1px solid var(--border);transition:background .15s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:#F9FAFB;}
+tbody td{padding:11px 13px;font-size:13px;}
+.td-id{font-family:'Space Grotesk',sans-serif;font-weight:600;color:var(--forest);}
+
+/* CHARTS */
+.a-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;}
+.chart-card{background:white;border-radius:12px;padding:18px;box-shadow:var(--shadow);}
+.chart-title{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;color:var(--forest);margin-bottom:14px;}
+canvas{max-height:250px;}
+
+/* HUBS */
+.hub-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;}
+.hub-card{background:white;border-radius:10px;padding:13px 14px;box-shadow:var(--shadow);display:flex;align-items:center;gap:11px;}
+.hub-badge{width:38px;height:38px;background:var(--forest);color:white;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:700;flex-shrink:0;text-align:center;line-height:1.2;}
+.hub-info{flex:1;min-width:0;}
+.hub-nm{font-size:13px;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hub-ct{font-size:12px;color:var(--muted);}
+.hub-dots{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px;}
+.hdot2{width:8px;height:8px;border-radius:50%;}
+
+/* SETTINGS */
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.settings-card{background:white;border-radius:12px;padding:20px;box-shadow:var(--shadow);}
+.settings-card h3{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;color:var(--forest);margin-bottom:14px;}
+.officer-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;max-height:300px;overflow-y:auto;}
+.officer-row{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:8px;padding:8px 10px;}
+.officer-inp{flex:1;border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;background:white;}
+.officer-inp:focus{border-color:var(--forest);}
+.icon-btn{width:30px;height:30px;border:none;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.icon-btn.del{background:var(--crimson-light);color:var(--crimson);}
+.icon-btn.del:hover{background:var(--crimson);color:white;}
+.add-row{display:flex;gap:8px;}
+.add-inp{flex:1;border:2px solid var(--border);border-radius:8px;padding:8px 12px;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;}
+.add-inp:focus{border-color:var(--forest);}
+.hub-settings-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;max-height:380px;overflow-y:auto;padding-right:4px;}
+.hub-edit-row{background:var(--bg);border-radius:8px;padding:9px 11px;display:flex;align-items:center;gap:9px;}
+.hub-num{width:32px;height:32px;background:var(--forest);color:white;border-radius:7px;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:700;flex-shrink:0;text-align:center;}
+.hub-name-inp{flex:1;border:1px solid var(--border);border-radius:6px;padding:6px 9px;font-family:'DM Sans',sans-serif;font-size:12px;outline:none;background:white;}
+.hub-name-inp:focus{border-color:var(--forest);}
+.saved-dot{width:7px;height:7px;border-radius:50%;background:#E5E7EB;flex-shrink:0;transition:background .3s;}
+.saved-dot.ok{background:var(--green);}
+.creds-box{background:var(--teal-light);border:1px solid var(--teal);border-radius:10px;padding:14px 16px;font-size:13px;color:#155E75;margin-top:18px;}
+
+/* SYNC BANNER */
+.sync-banner{border-radius:8px;padding:9px 14px;margin-bottom:14px;font-size:13px;display:none;align-items:center;gap:8px;}
+.sync-banner.show{display:flex;}
+.sync-banner.warn{background:var(--amber-light);border:1px solid var(--amber);color:#92400E;}
+
+/* BUTTONS */
+.btn{padding:9px 20px;border-radius:8px;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;}
+.btn-p{background:var(--forest);color:white;}
+.btn-p:hover{background:var(--forest-light);}
+.btn-g{background:transparent;color:var(--muted);border:2px solid var(--border);}
+.btn-g:hover{color:var(--text);}
+.btn-sm{padding:7px 13px;font-size:12px;}
+
+/* INSTALL PROMPT */
+.install-bar{background:var(--forest);color:white;padding:12px 20px;display:none;align-items:center;justify-content:space-between;gap:12px;font-size:13px;}
+.install-bar.show{display:flex;}
+.install-btn{padding:7px 16px;background:var(--amber);border:none;border-radius:7px;color:white;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;}
+
+/* TOAST */
+.toast{position:fixed;bottom:calc(24px + var(--safe-bot));right:20px;background:var(--forest);color:white;padding:11px 18px;border-radius:10px;font-size:14px;font-weight:500;box-shadow:var(--shadow-lg);transform:translateY(80px);opacity:0;transition:all .3s;z-index:9998;max-width:300px;}
+.toast.show{transform:translateY(0);opacity:1;}
+
+@media(max-width:900px){.kpi-strip{grid-template-columns:repeat(3,1fr);}.a-grid{grid-template-columns:1fr;}.dp-grid{grid-template-columns:1fr 1fr;}.settings-grid{grid-template-columns:1fr;}}
+@media(max-width:600px){main{padding:14px;}.kpi-strip{grid-template-columns:1fr 1fr;}.nav-tab{padding:8px 9px;font-size:11px;}header{padding-left:14px;padding-right:14px;}}
+@media print{header,.nav-tabs,.setup-screen,.hdr-btn,.fbtn,.srch,.btn,.sync-banner,.install-bar{display:none!important;}body{background:white;}.tab-content{display:block!important;}.bag-card{break-inside:avoid;}}
+</style>
+</head>
+<body>
+
+<!-- INSTALL PROMPT BAR -->
+<div class="install-bar" id="installBar">
+  <span>📲 Install FumiTrack on this device for quick access</span>
+  <div style="display:flex;gap:8px">
+    <button class="install-btn" id="installBtn" onclick="doInstall()">Install App</button>
+    <button style="background:transparent;border:none;color:rgba(255,255,255,.7);cursor:pointer;font-size:18px" onclick="document.getElementById('installBar').classList.remove('show')">✕</button>
+  </div>
+</div>
+
+<!-- SETUP -->
+<div class="setup-screen" id="setupScreen">
+  <div class="setup-box">
+    <div class="setup-logo">
+      <div class="setup-icon"><img src="icon-192.png" alt="FumiTrack"/></div>
+      <h1>FumiTrack Office</h1>
+      <p>Admin Dashboard — one-time setup</p>
+    </div>
+    <div class="f-row">
+      <label class="f-label">JSONBin Master API Key</label>
+      <input class="f-input" id="setupKey" type="password" placeholder="$2a$10$…"/>
+      <div class="f-hint">Free key at <a href="https://jsonbin.io" target="_blank">jsonbin.io</a> → API Keys</div>
+    </div>
+    <div class="f-row">
+      <label class="f-label">Bin ID <span style="font-weight:400;color:var(--muted)">(blank = create new database)</span></label>
+      <input class="f-input" id="setupBin" type="text" placeholder="6849f2e…"/>
+      <div class="f-hint" id="binHint">After first setup, copy the Bin ID into the Officer app.</div>
+    </div>
+    <button class="btn-enter" id="enterBtn" onclick="enterApp()">Open Dashboard →</button>
+    <div class="setup-err" id="setupErr"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+<header>
+  <div class="logo"><div class="logo-icon"><img src="icon-192.png" alt=""/></div><div>FumiTrack <span style="opacity:.55;font-weight:400">Office</span></div></div>
+  <div class="hdr-right">
+    <div class="live-pill"><div class="live-dot"></div>LIVE</div>
+    <div class="sync-lbl" id="syncLbl">Connecting…</div>
+    <button class="hdr-btn" onclick="window.print()">🖨️ Print</button>
+  </div>
+</header>
+<div class="nav-tabs">
+  <button class="nav-tab active" onclick="switchTab('dashboard',this)">📊 Dashboard</button>
+  <button class="nav-tab" onclick="switchTab('bags',this)">🌿 Bags</button>
+  <button class="nav-tab" onclick="switchTab('history',this)">📜 Log</button>
+  <button class="nav-tab" onclick="switchTab('analytics',this)">📈 Analytics</button>
+  <button class="nav-tab" onclick="switchTab('hubs',this)">🏠 Hubs</button>
+  <button class="nav-tab" onclick="switchTab('settings',this)">⚙️ Settings</button>
+</div>
+<main>
+
+  <div id="tab-dashboard" class="tab-content active">
+    <div class="sync-banner warn" id="syncBanner"><span id="syncMsg"></span></div>
+    <div class="kpi-strip" id="kpiStrip"></div>
+    <div class="sec-title">All 60 Bags — Live Status</div>
+    <div class="bag-grid" id="dashGrid"></div>
+  </div>
+
+  <div id="tab-bags" class="tab-content">
+    <div class="grid-ctrl">
+      <button class="fbtn active" onclick="filterBags('all',this)">All (60)</button>
+      <button class="fbtn" onclick="filterBags('available',this)">🟢 Available</button>
+      <button class="fbtn" onclick="filterBags('inuse',this)">🟡 In Use</button>
+      <button class="fbtn" onclick="filterBags('pending',this)">🟣 Pending</button>
+      <button class="fbtn" onclick="filterBags('tomove',this)">🔵 To Move</button>
+      <button class="fbtn" onclick="filterBags('damaged',this)">🔴 Damaged</button>
+      <input class="srch" id="bagSrch" placeholder="🔍 Bag, location, officer…" oninput="renderBagGrid()"/>
+    </div>
+    <div class="detail-panel" id="detailPanel"></div>
+    <div class="bag-grid" id="mainGrid"></div>
+  </div>
+
+  <div id="tab-history" class="tab-content">
+    <div class="tbl-wrap">
+      <div class="tbl-bar">
+        <div class="sec-title" style="margin:0;flex:1">Movement Log</div>
+        <button class="hdr-btn" onclick="exportCSV()">📥 CSV</button>
+      </div>
+      <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>#</th><th>Bag</th><th>Date</th><th>Type</th><th>Location</th><th>Officer</th><th>Status</th><th>Condition</th><th>Capacity</th><th>Notes</th></tr></thead>
+        <tbody id="histBody"></tbody>
+      </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-analytics" class="tab-content">
+    <div class="a-grid">
+      <div class="chart-card"><div class="chart-title">📊 Status Distribution</div><canvas id="cStatus"></canvas></div>
+      <div class="chart-card"><div class="chart-title">📈 Movements Over Time</div><canvas id="cTrend"></canvas></div>
+      <div class="chart-card"><div class="chart-title">👤 Activity by Officer</div><canvas id="cOfficer"></canvas></div>
+      <div class="chart-card"><div class="chart-title">🏠 Bags per Location (Top 15)</div><canvas id="cLocation"></canvas></div>
+    </div>
+    <div class="a-grid">
+      <div class="chart-card"><div class="chart-title">⚠️ Condition Breakdown</div><canvas id="cCond"></canvas></div>
+      <div class="chart-card"><div class="chart-title">⚖️ Capacity Distribution</div><canvas id="cCap"></canvas></div>
+    </div>
+  </div>
+
+  <div id="tab-hubs" class="tab-content">
+    <div class="sec-title">Hub & Warehouse Distribution</div>
+    <div class="hub-grid" id="hubGrid"></div>
+  </div>
+
+  <div id="tab-settings" class="tab-content">
+    <div class="settings-grid">
+      <div class="settings-card">
+        <h3>👤 Field Officers</h3>
+        <div class="officer-list" id="officerList"></div>
+        <div class="add-row">
+          <input class="add-inp" id="newOff" placeholder="New officer name…" onkeydown="if(event.key==='Enter')addOfficer()"/>
+          <button class="btn btn-p btn-sm" onclick="addOfficer()">+ Add</button>
+        </div>
+        <div style="margin-top:12px"><button class="btn btn-p" onclick="saveOfficers()">💾 Save Officers</button></div>
+      </div>
+      <div class="settings-card">
+        <h3>🏠 Hub Names</h3>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Rename hubs to actual location names.</p>
+        <div style="margin-bottom:12px"><button class="btn btn-p btn-sm" onclick="saveAllHubNames()">💾 Save Hub Names</button></div>
+        <div class="hub-settings-grid" id="hubSettingsGrid"></div>
+      </div>
+    </div>
+    <div class="creds-box">
+      <div style="font-weight:700;margin-bottom:8px">📋 Officer App Setup Info</div>
+      <div style="background:white;border-radius:8px;padding:12px;font-family:'Space Grotesk',sans-serif;font-size:13px;line-height:2">
+        Bin ID: <strong id="showBinId">—</strong>
+      </div>
+      <div style="font-size:11px;margin-top:8px;opacity:.8">Share this Bin ID + your API key with whoever sets up the officer app.</div>
+    </div>
+  </div>
+
+</main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══ PWA ═══
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault(); deferredPrompt=e;
+  document.getElementById('installBar').classList.add('show');
+});
+async function doInstall(){
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const {outcome}=await deferredPrompt.userChoice;
+  deferredPrompt=null;
+  document.getElementById('installBar').classList.remove('show');
+}
+window.addEventListener('appinstalled',()=>{ document.getElementById('installBar').classList.remove('show'); });
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
+
+// ═══ CONSTANTS ═══
+const JSONBIN='https://api.jsonbin.io/v3';
+const STATUS_CFG={
+  available:{label:'Available for Fumigation',badge:'sb-available',dot:'s-available',card:'s-available',kpi:'s-avail',icon:'🟢'},
+  inuse:    {label:'In Use / Fumigating',      badge:'sb-inuse',   dot:'s-inuse',   card:'s-inuse',   kpi:'s-inuse',icon:'🟡'},
+  pending:  {label:'Pending for Loading',       badge:'sb-pending', dot:'s-pending', card:'s-pending', kpi:'s-pend', icon:'🟣'},
+  tomove:   {label:'To Be Moved',              badge:'sb-tomove',  dot:'s-tomove',  card:'s-tomove',  kpi:'s-move', icon:'🔵'},
+  damaged:  {label:'Damaged',                  badge:'sb-damaged', dot:'s-damaged', card:'s-damaged', kpi:'s-dmg',  icon:'🔴'},
+};
+const DEFAULT_HUBS={};
+DEFAULT_HUBS['Warehouse']='Warehouse';
+for(let i=1;i<=80;i++) DEFAULT_HUBS[`Hub ${String(i).padStart(2,'0')}`]=`Hub ${String(i).padStart(2,'0')}`;
+const DEFAULT_OFFICERS=['Isaac Mensah','Abena Osei','Kwame Asante','Akosua Boateng','Kofi Antwi','Ama Darko','Yaw Frimpong','Efua Agyemang','Kweku Baffoe','Adwoa Asante','Nana Opoku','Esi Quansah','Kwabena Owusu','Adjoa Amponsah'];
+
+let apiKey='',binId='';
+let state={bags:{},movements:[],hubNames:{...DEFAULT_HUBS},officers:[...DEFAULT_OFFICERS]};
+let currentFilter='all',charts={};
+
+function buildInit(){
+  const bags={};
+  for(let i=1;i<=60;i++){const id=`Bag ${String(i).padStart(2,'0')}`;bags[id]={id,location:'Warehouse',status:'available',condition:'good',capacity:100,officer:'',lastMoved:'',notes:''};}
+  return{bags,movements:[],hubNames:{...DEFAULT_HUBS},officers:[...DEFAULT_OFFICERS]};
+}
+function mergeState(r){
+  if(!r.hubNames)r.hubNames={...DEFAULT_HUBS};
+  if(!r.bags)r.bags=buildInit().bags;
+  if(!r.movements)r.movements=[];
+  if(!r.officers)r.officers=[...DEFAULT_OFFICERS];
+  return r;
+}
+function dispLoc(k){return state.hubNames[k]||k;}
+function sl(s){return STATUS_CFG[s]||STATUS_CFG.available;}
+
+window.addEventListener('DOMContentLoaded',()=>{
+  const k=localStorage.getItem('ft_off_key'),b=localStorage.getItem('ft_off_bin');
+  if(k)document.getElementById('setupKey').value=k;
+  if(b)document.getElementById('setupBin').value=b;
+});
+
+async function enterApp(){
+  const key=document.getElementById('setupKey').value.trim();
+  const bin=document.getElementById('setupBin').value.trim();
+  if(!key){showSetupErr('Please enter your JSONBin API key.');return;}
+  apiKey=key;
+  const btn=document.getElementById('enterBtn');
+  btn.textContent='Connecting…';btn.disabled=true;
+  hideSetupErr();
+  try{
+    if(bin){binId=bin;const d=await fetchBin();state=mergeState(d);}
+    else{await createBin();}
+    localStorage.setItem('ft_off_key',apiKey);
+    localStorage.setItem('ft_off_bin',binId);
+    document.getElementById('showBinId').textContent=binId;
+    launch();
+  }catch(e){
+    showSetupErr('Could not connect. Check your API key / Bin ID.');
+    btn.textContent='Open Dashboard →';btn.disabled=false;
+  }
+}
+function showSetupErr(m){const el=document.getElementById('setupErr');el.textContent=m;el.style.display='block';}
+function hideSetupErr(){document.getElementById('setupErr').style.display='none';}
+
+async function fetchBin(){
+  const r=await fetch(`${JSONBIN}/b/${binId}/latest`,{headers:{'X-Master-Key':apiKey}});
+  if(!r.ok)throw new Error();
+  return(await r.json()).record;
+}
+async function updateBin(){
+  const r=await fetch(`${JSONBIN}/b/${binId}`,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':apiKey},body:JSON.stringify(state)});
+  if(!r.ok)throw new Error();
+}
+async function createBin(){
+  const init=buildInit();
+  const r=await fetch(`${JSONBIN}/b`,{method:'POST',headers:{'Content-Type':'application/json','X-Master-Key':apiKey,'X-Bin-Name':'FumiTrack-Pro','X-Bin-Private':'false'},body:JSON.stringify(init)});
+  if(!r.ok)throw new Error();
+  const j=await r.json();binId=j.metadata.id;state=mergeState(init);
+  localStorage.setItem('ft_off_bin',binId);
+  document.getElementById('setupBin').value=binId;
+  document.getElementById('binHint').innerHTML=`✅ Database created! <strong>Bin ID: ${binId}</strong>`;
+}
+
+function launch(){
+  document.getElementById('setupScreen').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('showBinId').textContent=binId;
+  renderDashboard();
+  setInterval(syncCloud,30000);
+  syncCloud();
+}
+async function syncCloud(){
+  try{
+    const d=await fetchBin();state=mergeState(d);
+    document.getElementById('syncLbl').textContent='Synced '+new Date().toLocaleTimeString();
+    hideBanner();renderActive();
+  }catch(e){
+    showBanner('⚠️ Sync failed — showing last known data.');
+    document.getElementById('syncLbl').textContent='Sync failed';
+  }
+}
+async function pushCloud(){
+  try{await updateBin();document.getElementById('syncLbl').textContent='Saved '+new Date().toLocaleTimeString();}
+  catch(e){showBanner('⚠️ Could not save.');}
+}
+function showBanner(m){const b=document.getElementById('syncBanner');document.getElementById('syncMsg').textContent=m;b.classList.add('show');}
+function hideBanner(){document.getElementById('syncBanner').classList.remove('show');}
+
+function switchTab(tab,btn){
+  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');btn.classList.add('active');
+  if(tab==='analytics')renderCharts();else if(tab==='hubs')renderHubs();else if(tab==='history')renderHistory();
+  else if(tab==='bags')renderBagGrid();else if(tab==='dashboard')renderDashboard();
+  else if(tab==='settings'){renderOfficerList();renderHubSettings();}
+}
+function renderActive(){
+  const a=document.querySelector('.tab-content.active')?.id?.replace('tab-','');
+  if(a==='dashboard')renderDashboard();else if(a==='bags')renderBagGrid();
+  else if(a==='history')renderHistory();else if(a==='hubs')renderHubs();else if(a==='analytics')renderCharts();
+}
+
+function bagCard(bag,fn){
+  const cfg=sl(bag.status);const pct=Math.min(100,(bag.capacity/300)*100);
+  return `<div class="bag-card ${cfg.card}" onclick="${fn}">
+    <div class="bag-hdr"><span class="bag-id-lbl">${bag.id}</span><span class="sdot ${cfg.dot}"></span></div>
+    <div class="bag-loc">📍 ${dispLoc(bag.location)}</div>
+    <span class="sbadge ${cfg.badge}">${cfg.label}</span>
+    <div class="bag-off">👤 ${bag.officer||'—'}</div>
+    <div class="bag-off">${bag.condition==='damaged'?'⚠️ Damaged':'✅ Good'}</div>
+    <div class="cap-bar"><div class="cap-fill" style="width:${pct}%"></div></div>
+    <div class="cap-lbl">⚖️ ${bag.capacity} kg</div>
+  </div>`;
+}
+
+function renderDashboard(){
+  const bags=Object.values(state.bags);
+  const c={available:0,inuse:0,pending:0,tomove:0,damaged:0};
+  bags.forEach(b=>c[b.status]=(c[b.status]||0)+1);
+  document.getElementById('kpiStrip').innerHTML=`
+    <div class="kpi-card s-avail"><div class="kpi-icon">🟢</div><div><div class="kpi-num">${c.available||0}</div><div class="kpi-lbl">Available for Fumigation</div></div></div>
+    <div class="kpi-card s-inuse"><div class="kpi-icon">🌿</div><div><div class="kpi-num">${c.inuse||0}</div><div class="kpi-lbl">In Use / Fumigating</div></div></div>
+    <div class="kpi-card s-pend"><div class="kpi-icon">📦</div><div><div class="kpi-num">${c.pending||0}</div><div class="kpi-lbl">Pending Loading</div></div></div>
+    <div class="kpi-card s-move"><div class="kpi-icon">🚚</div><div><div class="kpi-num">${c.tomove||0}</div><div class="kpi-lbl">To Be Moved</div></div></div>
+    <div class="kpi-card s-dmg"><div class="kpi-icon">⚠️</div><div><div class="kpi-num">${c.damaged||0}</div><div class="kpi-lbl">Damaged</div></div></div>`;
+  document.getElementById('dashGrid').innerHTML=bags.map(b=>bagCard(b,`showDetail('${b.id}',event)`)).join('');
+}
+
+function renderBagGrid(){
+  const bags=Object.values(state.bags);
+  const q=(document.getElementById('bagSrch')?.value||'').toLowerCase();
+  const f=bags.filter(b=>{
+    const mf=currentFilter==='all'||b.status===currentFilter;
+    const mq=!q||b.id.toLowerCase().includes(q)||dispLoc(b.location).toLowerCase().includes(q)||(b.officer||'').toLowerCase().includes(q);
+    return mf&&mq;
+  });
+  document.getElementById('mainGrid').innerHTML=f.map(b=>bagCard(b,`showDetail('${b.id}',event)`)).join('');
+}
+function filterBags(f,btn){
+  currentFilter=f;document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');renderBagGrid();
+}
+
+function showDetail(id,e){
+  e?.stopPropagation();const bag=state.bags[id];if(!bag)return;
+  const panel=document.getElementById('detailPanel');
+  const moves=(state.movements||[]).filter(m=>m.bagId===id).slice(-6).reverse();
+  const cfg=sl(bag.status);
+  panel.className='detail-panel open';
+  panel.innerHTML=`
+    <div class="dp-hdr">
+      <div><div class="dp-id">${bag.id}</div>
+      <span class="sbadge ${cfg.badge}">${cfg.icon} ${cfg.label}</span>
+      ${bag.condition==='damaged'?'<span class="sbadge sb-damaged" style="margin-left:5px">⚠️ Damaged</span>':'<span class="sbadge sb-available" style="margin-left:5px">✅ Good</span>'}</div>
+      <button class="btn btn-g" onclick="document.getElementById('detailPanel').className='detail-panel'">✕</button>
+    </div>
+    <div class="dp-grid">
+      <div><div class="dil">Location</div><div class="div2">📍 ${dispLoc(bag.location)}</div></div>
+      <div><div class="dil">Last Officer</div><div class="div2">👤 ${bag.officer||'—'}</div></div>
+      <div><div class="dil">Last Updated</div><div class="div2">📅 ${bag.lastMoved||'—'}</div></div>
+      <div><div class="dil">Capacity</div><div class="div2">⚖️ ${bag.capacity} kg</div></div>
+      <div><div class="dil">Condition</div><div class="div2">${bag.condition==='damaged'?'⚠️ Damaged':'✅ Good'}</div></div>
+      <div><div class="dil">Notes</div><div class="div2" style="font-size:13px">${bag.notes||'—'}</div></div>
+    </div>
+    <div style="font-size:13px;font-weight:700;color:var(--forest);margin-bottom:10px">Activity History</div>
+    ${moves.length?moves.map(m=>`<div class="he"><div class="hdot"></div><div class="htxt">
+      ${m.entryType==='status'?`<strong>Status update</strong>`:`Moved to <strong>${dispLoc(m.location)}</strong>`} by <strong>${m.officer}</strong>
+      — <span class="sbadge ${sl(m.status).badge}" style="font-size:9px">${sl(m.status).label}</span>
+      ${m.notes?`<br><span style="color:var(--muted);font-size:12px">${m.notes}</span>`:''}
+      <div class="hdt">📅 ${m.date}${m.capacity?' · ⚖️ '+m.capacity+' kg':''}</div>
+    </div></div>`).join(''):'<div style="font-size:13px;color:var(--muted);padding:10px 0">No history yet.</div>'}`;
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function renderHistory(){
+  const moves=[...(state.movements||[])].reverse();
+  const tb=document.getElementById('histBody');
+  if(!moves.length){tb.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:24px">No entries yet.</td></tr>';return;}
+  tb.innerHTML=moves.map((m,i)=>{
+    const cfg=sl(m.status);
+    return `<tr>
+      <td style="color:var(--muted);font-size:11px">${moves.length-i}</td>
+      <td class="td-id">${m.bagId}</td><td>${m.date}</td>
+      <td><span style="font-size:11px;font-weight:600;padding:2px 7px;border-radius:10px;background:${m.entryType==='status'?'#DBEAFE':'#D1FAE5'};color:${m.entryType==='status'?'#1D4ED8':'#065F46'}">${m.entryType==='status'?'Status Update':'Movement'}</span></td>
+      <td>📍 ${dispLoc(m.location)}</td><td>👤 ${m.officer}</td>
+      <td><span class="sbadge ${cfg.badge}">${cfg.icon} ${cfg.label}</span></td>
+      <td>${m.condition==='damaged'?'<span style="color:var(--crimson);font-weight:600">⚠️</span>':'<span style="color:var(--green);font-weight:600">✅</span>'} ${m.condition}</td>
+      <td>${m.capacity||'—'}${m.capacity?' kg':''}</td>
+      <td style="max-width:120px;font-size:12px;color:var(--muted)">${m.notes||'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderHubs(){
+  const bags=Object.values(state.bags);const lm={};
+  bags.forEach(b=>{const d=dispLoc(b.location);if(!lm[d])lm[d]=[];lm[d].push(b);});
+  const locs=Object.keys(DEFAULT_HUBS).map(k=>state.hubNames[k]||k).filter(l=>lm[l]);
+  const colMap={available:'var(--green)',inuse:'var(--amber)',pending:'var(--purple)',tomove:'var(--teal)',damaged:'var(--crimson)'};
+  document.getElementById('hubGrid').innerHTML=locs.map(loc=>{
+    const lb=lm[loc]||[];
+    const dots=lb.map(b=>`<div class="hdot2" style="background:${colMap[b.status]||'#ccc'}" title="${b.id}"></div>`).join('');
+    return `<div class="hub-card">
+      <div class="hub-badge">${loc.replace('Warehouse','WH').replace(/Hub /,'H')}</div>
+      <div class="hub-info"><div class="hub-nm">${loc}</div><div class="hub-ct">${lb.length} bag${lb.length!==1?'s':''}</div><div class="hub-dots">${dots}</div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderOfficerList(){
+  document.getElementById('officerList').innerHTML=(state.officers||[]).map((name,i)=>`
+    <div class="officer-row">
+      <input class="officer-inp" id="oi_${i}" value="${name}"/>
+      <button class="icon-btn del" onclick="removeOfficer(${i})">✕</button>
+    </div>`).join('');
+}
+function addOfficer(){
+  const inp=document.getElementById('newOff');const name=inp.value.trim();
+  if(!name){showToast('⚠️ Enter a name.');return;}
+  if(!state.officers)state.officers=[];
+  state.officers.push(name);inp.value='';renderOfficerList();
+}
+function removeOfficer(i){state.officers.splice(i,1);renderOfficerList();}
+async function saveOfficers(){
+  (state.officers||[]).forEach((_,i)=>{const el=document.getElementById('oi_'+i);if(el)state.officers[i]=el.value.trim()||state.officers[i];});
+  await pushCloud();showToast('✅ Officers saved and synced!');
+}
+
+function renderHubSettings(){
+  document.getElementById('hubSettingsGrid').innerHTML=Object.keys(DEFAULT_HUBS).map(k=>`
+    <div class="hub-edit-row">
+      <div class="hub-num">${k.replace('Warehouse','WH').replace(/Hub /,'H')}</div>
+      <input class="hub-name-inp" id="hn_${k.replace(/\s/g,'_')}" value="${state.hubNames[k]||k}" placeholder="${k}"/>
+      <div class="saved-dot" id="sd_${k.replace(/\s/g,'_')}"></div>
+    </div>`).join('');
+}
+async function saveAllHubNames(){
+  Object.keys(DEFAULT_HUBS).forEach(k=>{const el=document.getElementById('hn_'+k.replace(/\s/g,'_'));if(el)state.hubNames[k]=el.value.trim()||k;});
+  await pushCloud();
+  Object.keys(DEFAULT_HUBS).forEach(k=>document.getElementById('sd_'+k.replace(/\s/g,'_'))?.classList.add('ok'));
+  showToast('✅ Hub names saved and synced!');
+}
+
+function dc(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+function renderCharts(){
+  const bags=Object.values(state.bags),moves=state.movements||[];
+  dc('status');const c={available:0,inuse:0,pending:0,tomove:0,damaged:0};
+  bags.forEach(b=>c[b.status]=(c[b.status]||0)+1);
+  charts['status']=new Chart(document.getElementById('cStatus'),{type:'doughnut',data:{labels:['Available','In Use','Pending','To Move','Damaged'],datasets:[{data:[c.available,c.inuse,c.pending,c.tomove,c.damaged],backgroundColor:['#16A34A','#D4860B','#7C3AED','#0E7490','#B91C1C'],borderWidth:0,hoverOffset:6}]},options:{plugins:{legend:{position:'bottom',labels:{font:{family:'DM Sans',size:12},boxWidth:12}}},cutout:'60%'}});
+  dc('trend');const dm={};moves.forEach(m=>{dm[m.date]=(dm[m.date]||0)+1;});const days=Object.keys(dm).sort().slice(-30);
+  charts['trend']=new Chart(document.getElementById('cTrend'),{type:'line',data:{labels:days,datasets:[{label:'Activity',data:days.map(d=>dm[d]),borderColor:'#1A3A2A',backgroundColor:'rgba(26,58,42,0.1)',tension:0.4,fill:true,pointBackgroundColor:'#D4860B',pointRadius:4}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
+  dc('officer');const om={};moves.forEach(m=>{om[m.officer]=(om[m.officer]||0)+1;});const on=Object.keys(om).sort((a,b)=>om[b]-om[a]);
+  charts['officer']=new Chart(document.getElementById('cOfficer'),{type:'bar',data:{labels:on.map(n=>n.split(' ')[0]),datasets:[{label:'Activity',data:on.map(n=>om[n]),backgroundColor:'#2D5A40',borderRadius:6}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
+  dc('location');const lm2={};bags.forEach(b=>{const d=dispLoc(b.location);lm2[d]=(lm2[d]||0)+1;});const le=Object.entries(lm2).sort((a,b)=>b[1]-a[1]).slice(0,15);
+  charts['location']=new Chart(document.getElementById('cLocation'),{type:'bar',data:{labels:le.map(([l])=>l.replace('Hub ','H').replace('Warehouse','WH')),datasets:[{label:'Bags',data:le.map(([,v])=>v),backgroundColor:'#0E7490',borderRadius:4}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
+  dc('cond');const gd=bags.filter(b=>b.condition!=='damaged').length,dm2=bags.filter(b=>b.condition==='damaged').length;
+  charts['cond']=new Chart(document.getElementById('cCond'),{type:'pie',data:{labels:['Good','Damaged'],datasets:[{data:[gd,dm2],backgroundColor:['#16A34A','#B91C1C'],borderWidth:0}]},options:{plugins:{legend:{position:'bottom',labels:{font:{family:'DM Sans',size:12},boxWidth:12}}}}});
+  dc('cap');const cg={'≤50':0,'51-100':0,'101-150':0,'151-200':0,'>200':0};
+  bags.forEach(b=>{if(b.capacity<=50)cg['≤50']++;else if(b.capacity<=100)cg['51-100']++;else if(b.capacity<=150)cg['101-150']++;else if(b.capacity<=200)cg['151-200']++;else cg['>200']++;});
+  charts['cap']=new Chart(document.getElementById('cCap'),{type:'bar',data:{labels:Object.keys(cg).map(k=>k+' kg'),datasets:[{label:'Bags',data:Object.values(cg),backgroundColor:['#7C3AED','#0E7490','#D4860B','#16A34A','#B91C1C'],borderRadius:6}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
+}
+
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
+function exportCSV(){
+  const rows=[['#','Bag','Date','Type','Location','Officer','Status','Condition','Capacity(kg)','Notes']];
+  [...(state.movements||[])].reverse().forEach((m,i)=>{rows.push([state.movements.length-i,m.bagId,m.date,m.entryType==='status'?'Status Update':'Movement',dispLoc(m.location),m.officer,sl(m.status).label,m.condition,m.capacity||'',m.notes||'']);});
+  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download=`FumiTrack_Log_${new Date().toISOString().split('T')[0]}.csv`;a.click();
+  showToast('📥 CSV exported!');
+}
+</script>
+</body>
+</html>
