@@ -1,635 +1,84 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-<meta name="mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<meta name="apple-mobile-web-app-title" content="FumiTrack"/>
-<meta name="theme-color" content="#1A3A2A"/>
-<title>FumiTrack Officer</title>
-<link rel="manifest" href="manifest_officer.json"/>
-<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-<style>
-:root{
-  --forest:#1A3A2A;--forest-light:#2D5A40;
-  --amber:#D4860B;--amber-light:#FEF3C7;
-  --crimson:#B91C1C;--crimson-light:#FEE2E2;
-  --teal:#0E7490;--teal-light:#CFFAFE;
-  --purple:#7C3AED;--purple-light:#EDE9FE;
-  --green:#16A34A;--green-light:#DCFCE7;
-  --bg:#F0EDE6;--card:#FFF;--text:#111827;--muted:#6B7280;--border:#E5E7EB;
-  --shadow:0 2px 8px rgba(0,0,0,0.08);--shadow-lg:0 8px 24px rgba(0,0,0,0.14);
-  --safe-top:env(safe-area-inset-top,0px);
-  --safe-bot:env(safe-area-inset-bottom,0px);
-}
-*{box-sizing:border-box;margin:0;padding:0;}
-html,body{height:100%;}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:calc(20px + var(--safe-bot));}
+# FumiTrack Pro — Deployment Guide
 
-/* SETUP */
-.setup-screen{position:fixed;inset:0;background:var(--forest);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;padding-top:calc(20px + var(--safe-top));}
-.setup-box{background:white;border-radius:20px;padding:32px;width:420px;max-width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.4);}
-.setup-top{text-align:center;margin-bottom:22px;}
-.setup-img{width:72px;height:72px;border-radius:18px;margin-bottom:12px;}
-.setup-top h1{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;color:var(--forest);}
-.setup-top p{font-size:13px;color:var(--muted);margin-top:4px;}
-.setup-note{background:var(--green-light);border:1px solid var(--green);border-radius:8px;padding:10px 13px;font-size:12px;color:#14532D;margin-bottom:18px;line-height:1.5;}
-.f-row{margin-bottom:14px;}
-.f-label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;}
-.f-input{width:100%;padding:11px 14px;border:2px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s;}
-.f-input:focus{border-color:var(--forest);}
-.f-hint{font-size:11px;color:var(--muted);margin-top:5px;}
-.btn-enter{width:100%;padding:13px;background:var(--forest);color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:6px;}
-.btn-enter:hover{background:var(--forest-light);}
-.setup-err{color:var(--crimson);font-size:13px;margin-top:10px;text-align:center;display:none;}
+## Files in this folder
+```
+fumitrack/
+├── FumiTrack_Office.html    ← Office dashboard (admin)
+├── FumiTrack_Officer.html   ← Field officer entry app
+├── manifest_office.json     ← PWA manifest for office
+├── manifest_officer.json    ← PWA manifest for officer
+├── sw.js                    ← Service worker (offline support)
+├── icon-192.png             ← App icon (small)
+├── icon-512.png             ← App icon (large)
+├── apple-touch-icon.png     ← iOS home screen icon
+└── README.md                ← This file
+```
 
-/* HEADER */
-header{background:var(--forest);color:white;padding:0 18px;padding-top:var(--safe-top);display:flex;align-items:center;justify-content:space-between;height:calc(58px + var(--safe-top));position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.25);}
-.logo{display:flex;align-items:center;gap:9px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:17px;}
-.logo-img{width:32px;height:32px;border-radius:8px;}
-.hdr-right{display:flex;align-items:center;gap:9px;}
-.conn-pill{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:4px 10px;border-radius:20px;}
-.conn-pill.online{background:rgba(74,222,128,.2);border:1px solid rgba(74,222,128,.4);}
-.conn-pill.offline{background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.4);}
-.conn-dot{width:6px;height:6px;border-radius:50%;}
-.conn-pill.online .conn-dot{background:#4ADE80;animation:lp 2s infinite;}
-.conn-pill.offline .conn-dot{background:#EF4444;}
-@keyframes lp{0%,100%{opacity:1;}50%{opacity:.3;}}
-.pending-badge{background:var(--amber);color:white;font-size:11px;font-weight:700;padding:3px 8px;border-radius:10px;display:none;}
-.pending-badge.show{display:inline;}
+---
 
-/* TAB BAR */
-.tab-bar{background:var(--forest-light);display:flex;padding:8px 18px 0;}
-.tab-btn{flex:1;padding:10px 6px;border:none;background:transparent;color:rgba(255,255,255,.65);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border-radius:8px 8px 0 0;transition:all .2s;text-align:center;}
-.tab-btn:hover{color:white;background:rgba(255,255,255,.1);}
-.tab-btn.active{background:var(--bg);color:var(--forest);}
+## Step 1 — Get a free JSONBin account
+1. Go to https://jsonbin.io and sign up free
+2. Go to **API Keys** → copy your **Master Key**
 
-main{padding:16px;max-width:640px;margin:0 auto;}
-.tab-content{display:none;}.tab-content.active{display:block;}
+---
 
-/* BANNERS */
-.offline-banner{background:var(--amber-light);border:1px solid var(--amber);border-radius:10px;padding:10px 13px;margin-bottom:14px;font-size:13px;color:#92400E;display:none;align-items:center;gap:8px;}
-.offline-banner.show{display:flex;}
-.queue-bar{background:white;border-radius:10px;padding:11px 14px;box-shadow:var(--shadow);margin-bottom:14px;display:none;align-items:center;justify-content:space-between;gap:10px;border-left:4px solid var(--amber);}
-.queue-bar.show{display:flex;}
-.queue-txt{font-size:13px;font-weight:600;color:var(--amber);}
-.queue-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+## Step 2 — Host the files (GitHub Pages — free)
+1. Go to https://github.com and create a free account
+2. Click **New Repository** → name it `fumitrack` → set to Public → Create
+3. Upload ALL files in this folder to the repository
+4. Go to **Settings → Pages → Source → main branch → Save**
+5. GitHub gives you a URL like: `https://yourusername.github.io/fumitrack/`
 
-/* FORM */
-.form-card{background:var(--card);border-radius:14px;padding:18px;box-shadow:var(--shadow-lg);margin-bottom:16px;}
-.form-card-title{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;color:var(--forest);margin-bottom:14px;display:flex;align-items:center;gap:7px;}
-.frow{margin-bottom:13px;}
-.flbl{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--text);}
-.flbl span{color:var(--crimson);}
-.finp,.fsel,.ftxt{width:100%;padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s;background:white;color:var(--text);-webkit-appearance:none;}
-.finp:focus,.fsel:focus,.ftxt:focus{border-color:var(--forest);}
-.ftxt{resize:vertical;min-height:65px;}
-.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+---
 
-/* STATUS CARDS */
-.status-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px;}
-.sc{padding:13px 10px;border:2px solid var(--border);border-radius:10px;cursor:pointer;transition:all .2s;text-align:center;background:white;-webkit-tap-highlight-color:transparent;}
-.sc:active{transform:scale(0.97);}
-.sc.sel-available{border-color:var(--green);background:var(--green-light);}
-.sc.sel-inuse{border-color:var(--amber);background:var(--amber-light);}
-.sc.sel-pending{border-color:var(--purple);background:var(--purple-light);}
-.sc.sel-tomove{border-color:var(--teal);background:var(--teal-light);}
-.sc.sel-damaged{border-color:var(--crimson);background:var(--crimson-light);}
-.sc-icon{font-size:22px;margin-bottom:5px;}
-.sc-label{font-size:12px;font-weight:600;color:var(--text);line-height:1.3;}
-.sc-desc{font-size:10px;color:var(--muted);margin-top:2px;}
+## Step 3 — Set up the Office Dashboard
+1. Open: `https://yourusername.github.io/fumitrack/FumiTrack_Office.html`
+2. Enter your JSONBin Master API Key
+3. Leave Bin ID blank → click **Open Dashboard**
+4. A new database is created → **copy the Bin ID shown**
+5. Your office dashboard is live ✅
 
-/* CONDITION */
-.cond-toggle{display:flex;gap:8px;}
-.cond-btn{flex:1;padding:10px;border:2px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;background:white;text-align:center;-webkit-tap-highlight-color:transparent;}
-.cond-btn.good.active{border-color:var(--green);background:var(--green-light);color:var(--green);}
-.cond-btn.damaged.active{border-color:var(--crimson);background:var(--crimson-light);color:var(--crimson);}
+---
 
-/* CURRENT STATUS BOX */
-.cur-status{background:var(--bg);border-radius:10px;padding:11px 13px;margin-bottom:13px;display:none;}
-.cur-lbl{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;}
-.cur-val{font-size:14px;font-weight:600;}
-.cur-loc{font-size:12px;color:var(--muted);margin-top:2px;}
+## Step 4 — Set up the Officer App (once, by admin)
+1. Open: `https://yourusername.github.io/fumitrack/FumiTrack_Officer.html`
+2. Enter the same API Key and the Bin ID from Step 3
+3. Click **Save & Open App**
+4. Setup is done — credentials are saved on that device ✅
 
-/* SUBMIT BUTTON */
-.btn-submit{width:100%;padding:13px;background:var(--forest);color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:4px;-webkit-tap-highlight-color:transparent;}
-.btn-submit:hover{background:var(--forest-light);}
-.btn-submit:disabled{opacity:.6;cursor:not-allowed;}
-.btn-clear{background:transparent;border:2px solid var(--border);color:var(--muted);border-radius:8px;padding:9px 18px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;margin-top:8px;width:100%;}
+---
 
-/* SUCCESS */
-.success-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center;padding:20px;}
-.success-overlay.show{display:flex;}
-.success-box{background:white;border-radius:20px;padding:32px;text-align:center;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);}
-.s-icon{font-size:52px;margin-bottom:12px;}
-.s-title{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;color:var(--forest);margin-bottom:8px;}
-.s-sub{font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6;}
-.s-offline{background:var(--amber-light);border:1px solid var(--amber);border-radius:8px;padding:10px;font-size:12px;color:#92400E;margin-bottom:16px;display:none;line-height:1.5;}
-.s-offline.show{display:block;}
-.btn-again{background:var(--forest);color:white;border:none;padding:13px 30px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;width:100%;}
+## Step 5 — Officers install on their phones
 
-/* INSTALL PROMPT */
-.install-bar{background:var(--forest);color:white;padding:11px 18px;display:none;align-items:center;justify-content:space-between;gap:10px;font-size:12px;}
-.install-bar.show{display:flex;}
-.install-btn{padding:6px 14px;background:var(--amber);border:none;border-radius:7px;color:white;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
+### Android (Chrome)
+1. Open the officer URL in Chrome
+2. Tap ⋮ menu → **Add to Home Screen** or **Install App**
+3. Tap Add → icon appears on home screen
 
-/* TOAST */
-.toast{position:fixed;bottom:calc(20px + var(--safe-bot));left:50%;transform:translateX(-50%) translateY(80px);background:var(--forest);color:white;padding:11px 18px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:var(--shadow-lg);opacity:0;transition:all .3s;z-index:9999;white-space:nowrap;max-width:90vw;}
-.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+### iPhone (Safari only)
+1. Open the officer URL in **Safari** (not Chrome)
+2. Tap the Share button (box with arrow)
+3. Tap **Add to Home Screen** → Add
+4. Icon appears on home screen
 
-@media(max-width:400px){.fgrid{grid-template-columns:1fr;}.status-grid{grid-template-columns:1fr 1fr;}}
-</style>
-</head>
-<body>
+### Works full screen — no browser bars ✅
 
-<!-- INSTALL BAR -->
-<div class="install-bar" id="installBar">
-  <span>📲 Install as app for quick access</span>
-  <div style="display:flex;gap:8px;align-items:center">
-    <button class="install-btn" onclick="doInstall()">Install</button>
-    <button style="background:transparent;border:none;color:rgba(255,255,255,.7);cursor:pointer;font-size:18px;line-height:1" onclick="document.getElementById('installBar').classList.remove('show')">✕</button>
-  </div>
-</div>
+---
 
-<!-- SETUP (admin one-time) -->
-<div class="setup-screen" id="setupScreen">
-  <div class="setup-box">
-    <div class="setup-top">
-      <img src="icon-192.png" class="setup-img" alt="FumiTrack"/>
-      <h1>FumiTrack Officer</h1>
-      <p>Field entry app — one-time admin setup</p>
-    </div>
-    <div class="setup-note">
-      📌 This screen only appears <strong>once</strong>. After setup, officers open the app and go straight to the entry form — no keys needed.
-    </div>
-    <div class="f-row">
-      <label class="f-label">JSONBin API Key</label>
-      <input class="f-input" id="sKey" type="password" placeholder="$2a$10$…"/>
-    </div>
-    <div class="f-row">
-      <label class="f-label">Bin ID <span style="font-weight:400;color:var(--muted)">(from Office Dashboard → Settings)</span></label>
-      <input class="f-input" id="sBin" type="text" placeholder="6849f2e…"/>
-      <div class="f-hint">Both values come from whoever set up the Office Dashboard.</div>
-    </div>
-    <button class="btn-enter" id="setupBtn" onclick="doSetup()">Save & Open App →</button>
-    <div class="setup-err" id="setupErr"></div>
-  </div>
-</div>
+## Daily Use
 
-<!-- APP -->
-<div id="app" style="display:none">
-<header>
-  <div class="logo">
-    <img src="icon-192.png" class="logo-img" alt=""/>
-    <div>FumiTrack <span style="opacity:.55;font-weight:400">Officer</span></div>
-  </div>
-  <div class="hdr-right">
-    <span class="pending-badge" id="pendingBadge">0 pending</span>
-    <div class="conn-pill online" id="connPill"><div class="conn-dot"></div><span id="connTxt">Online</span></div>
-  </div>
-</header>
+**Officers:** Open FumiTrack icon → choose tab:
+- **📦 Log Movement** — when a bag moves to a new location
+- **🔄 Update Status** — after offloading grain (bag stays, status changes)
 
-<div class="tab-bar">
-  <button class="tab-btn active" onclick="switchTab('move',this)">📦 Log Movement</button>
-  <button class="tab-btn" onclick="switchTab('status',this)">🔄 Update Status</button>
-</div>
+**Offline:** Works with no internet. Entries queue up and sync automatically when signal returns.
 
-<main>
-  <div class="offline-banner" id="offlineBanner">📴 Offline — entries saved locally, will sync when connected.</div>
+**Office:** Dashboard auto-refreshes every 30 seconds. All 3 viewing devices see the same live data.
 
-  <div class="queue-bar" id="queueBar">
-    <div>
-      <div class="queue-txt" id="queueTxt">⏳ Entries pending sync</div>
-      <div class="queue-sub" id="queueSub"></div>
-    </div>
-    <button style="padding:7px 12px;border:2px solid var(--border);border-radius:7px;background:white;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap" onclick="trySyncNow()">Sync Now</button>
-  </div>
+---
 
-  <!-- TAB 1: MOVEMENT -->
-  <div id="tab-move" class="tab-content active">
-    <div class="form-card">
-      <div class="form-card-title">📦 Log Bag Movement</div>
-
-      <div class="frow">
-        <label class="flbl">Your Name <span>*</span></label>
-        <select class="fsel" id="mOfficer"><option value="">— Select your name —</option></select>
-      </div>
-
-      <div class="fgrid">
-        <div class="frow">
-          <label class="flbl">Bag Number <span>*</span></label>
-          <select class="fsel" id="mBag"><option value="">— Select bag —</option></select>
-        </div>
-        <div class="frow">
-          <label class="flbl">Date <span>*</span></label>
-          <input type="date" class="finp" id="mDate"/>
-        </div>
-      </div>
-
-      <div class="frow">
-        <label class="flbl">New Location <span>*</span></label>
-        <select class="fsel" id="mLocation"><option value="">— Select location —</option></select>
-      </div>
-
-      <div class="frow">
-        <label class="flbl">Bag Status <span>*</span></label>
-        <div class="status-grid" id="mStatusGrid">
-          <div class="sc" onclick="selectStatus('m','available',this)"><div class="sc-icon">🟢</div><div class="sc-label">Available for Fumigation</div><div class="sc-desc">Bag empty & ready</div></div>
-          <div class="sc" onclick="selectStatus('m','inuse',this)"><div class="sc-icon">🟡</div><div class="sc-label">In Use / Fumigating</div><div class="sc-desc">Grain loaded</div></div>
-          <div class="sc" onclick="selectStatus('m','pending',this)"><div class="sc-icon">🟣</div><div class="sc-label">Pending for Loading</div><div class="sc-desc">Waiting to be filled</div></div>
-          <div class="sc" onclick="selectStatus('m','tomove',this)"><div class="sc-icon">🔵</div><div class="sc-label">To Be Moved</div><div class="sc-desc">Needs relocation</div></div>
-        </div>
-      </div>
-
-      <div class="frow">
-        <label class="flbl">Bag Capacity (kg) <span>*</span></label>
-        <input type="number" class="finp" id="mCap" placeholder="e.g. 100" min="0" max="5000" inputmode="numeric"/>
-      </div>
-
-      <div class="frow">
-        <label class="flbl">Bag Condition <span>*</span></label>
-        <div class="cond-toggle">
-          <button class="cond-btn good active" id="mCondG" onclick="setCond('good')">✅ Good</button>
-          <button class="cond-btn damaged" id="mCondD" onclick="setCond('damaged')">⚠️ Damaged</button>
-        </div>
-      </div>
-
-      <div class="frow">
-        <label class="flbl">Notes</label>
-        <textarea class="ftxt" id="mNotes" placeholder="Observations about bag or movement…"></textarea>
-      </div>
-
-      <button class="btn-submit" id="mBtn" onclick="submitMovement()">✅ Submit Movement</button>
-      <button class="btn-clear" onclick="clearMove()">Clear Form</button>
-    </div>
-  </div>
-
-  <!-- TAB 2: STATUS UPDATE -->
-  <div id="tab-status" class="tab-content">
-    <div class="form-card" style="border-left:4px solid var(--amber)">
-      <div class="form-card-title">🔄 Quick Status Update</div>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.6">Use this after <strong>offloading grain</strong> from a bag. The bag stays at its current location — only the status changes.</p>
-
-      <div class="frow">
-        <label class="flbl">Your Name <span>*</span></label>
-        <select class="fsel" id="sOfficer"><option value="">— Select your name —</option></select>
-      </div>
-
-      <div class="frow">
-        <label class="flbl">Bag Number <span>*</span></label>
-        <select class="fsel" id="sBagSel" onchange="showCurStatus()"><option value="">— Select bag —</option></select>
-      </div>
-
-      <div class="cur-status" id="curStatusBox">
-        <div class="cur-lbl">Current Status</div>
-        <div class="cur-val" id="curStatusVal"></div>
-        <div class="cur-loc" id="curStatusLoc"></div>
-      </div>
-
-      <div class="frow">
-        <label class="flbl">New Status <span>*</span></label>
-        <div class="status-grid" id="sStatusGrid">
-          <div class="sc" onclick="selectStatus('s','available',this)"><div class="sc-icon">🟢</div><div class="sc-label">Available for Fumigation</div><div class="sc-desc">Grain offloaded, ready</div></div>
-          <div class="sc" onclick="selectStatus('s','inuse',this)"><div class="sc-icon">🟡</div><div class="sc-label">In Use / Fumigating</div><div class="sc-desc">Grain loaded</div></div>
-          <div class="sc" onclick="selectStatus('s','pending',this)"><div class="sc-icon">🟣</div><div class="sc-label">Pending for Loading</div><div class="sc-desc">Waiting to be filled</div></div>
-          <div class="sc" onclick="selectStatus('s','tomove',this)"><div class="sc-icon">🔵</div><div class="sc-label">To Be Moved</div><div class="sc-desc">Needs relocation</div></div>
-          <div class="sc" onclick="selectStatus('s','damaged',this)" style="grid-column:span 2"><div class="sc-icon">🔴</div><div class="sc-label">Damaged</div><div class="sc-desc">Bag not usable</div></div>
-        </div>
-      </div>
-
-      <div class="frow">
-        <label class="flbl">Notes</label>
-        <textarea class="ftxt" id="sNotes" placeholder="e.g. Grain offloaded at 14:00, bag cleaned and folded…"></textarea>
-      </div>
-
-      <button class="btn-submit" id="sBtn" onclick="submitStatus()">🔄 Update Status</button>
-      <button class="btn-clear" onclick="clearStatus()">Clear Form</button>
-    </div>
-  </div>
-
-</main>
-</div>
-
-<!-- SUCCESS -->
-<div class="success-overlay" id="successOverlay">
-  <div class="success-box">
-    <div class="s-icon" id="sIcon">✅</div>
-    <div class="s-title" id="sTitle">Recorded!</div>
-    <div class="s-sub" id="sSub"></div>
-    <div class="s-offline" id="sOffline">📴 You are offline. This entry is saved on your device and will sync to the office dashboard automatically when internet is available.</div>
-    <button class="btn-again" onclick="closeSuccess()">Done — Log Another</button>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<script>
-// ═══ PWA ═══
-let deferredPrompt=null;
-window.addEventListener('beforeinstallprompt',e=>{
-  e.preventDefault();deferredPrompt=e;
-  document.getElementById('installBar').classList.add('show');
-});
-async function doInstall(){
-  if(!deferredPrompt)return;
-  deferredPrompt.prompt();
-  await deferredPrompt.userChoice;
-  deferredPrompt=null;
-  document.getElementById('installBar').classList.remove('show');
-}
-window.addEventListener('appinstalled',()=>document.getElementById('installBar').classList.remove('show'));
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('./sw.js').catch(()=>{});
-}
-
-// ═══ CONSTANTS ═══
-const JSONBIN='https://api.jsonbin.io/v3';
-const STATUS_CFG={
-  available:{label:'Available for Fumigation',icon:'🟢'},
-  inuse:    {label:'In Use / Fumigating',     icon:'🟡'},
-  pending:  {label:'Pending for Loading',      icon:'🟣'},
-  tomove:   {label:'To Be Moved',             icon:'🔵'},
-  damaged:  {label:'Damaged',                 icon:'🔴'},
-};
-const DEFAULT_HUBS={};
-DEFAULT_HUBS['Warehouse']='Warehouse';
-for(let i=1;i<=80;i++) DEFAULT_HUBS[`Hub ${String(i).padStart(2,'0')}`]=`Hub ${String(i).padStart(2,'0')}`;
-
-// ═══ STATE ═══
-let apiKey='',binId='';
-let cloudState={bags:{},movements:[],hubNames:{...DEFAULT_HUBS},officers:[]};
-let offlineQueue=[];
-let mStatus='',sStatus='',mCond='good';
-let isOnline=navigator.onLine;
-
-// ═══ SETUP ═══
-window.addEventListener('DOMContentLoaded',async()=>{
-  const k=localStorage.getItem('ft_o_key'),b=localStorage.getItem('ft_o_bin');
-  offlineQueue=JSON.parse(localStorage.getItem('ft_o_queue')||'[]');
-  if(k&&b){
-    apiKey=k;binId=b;
-    document.getElementById('setupScreen').style.display='none';
-    document.getElementById('app').style.display='block';
-    await initApp();
-  }
-});
-
-async function doSetup(){
-  const k=document.getElementById('sKey').value.trim();
-  const b=document.getElementById('sBin').value.trim();
-  if(!k||!b){showSetupErr('Both API key and Bin ID are required.');return;}
-  const btn=document.getElementById('setupBtn');
-  btn.textContent='Connecting…';btn.disabled=true;
-  try{
-    apiKey=k;binId=b;
-    await fetchCloud();
-    localStorage.setItem('ft_o_key',k);
-    localStorage.setItem('ft_o_bin',b);
-    document.getElementById('setupScreen').style.display='none';
-    document.getElementById('app').style.display='block';
-    await initApp();
-  }catch(e){
-    showSetupErr('Could not connect. Check the API key and Bin ID.');
-    btn.textContent='Save & Open App →';btn.disabled=false;
-  }
-}
-function showSetupErr(m){const el=document.getElementById('setupErr');el.textContent=m;el.style.display='block';}
-
-// ═══ INIT ═══
-async function initApp(){
-  try{await fetchCloud();}catch(e){}
-  populateForms();
-  updateConnUI();
-  updateQueueUI();
-  if(isOnline&&offlineQueue.length>0)trySyncNow();
-  setInterval(periodicSync,60000);
-  window.addEventListener('online',onOnline);
-  window.addEventListener('offline',onOffline);
-  document.getElementById('mDate').value=new Date().toISOString().split('T')[0];
-}
-
-// ═══ CONNECTIVITY ═══
-function onOnline(){isOnline=true;updateConnUI();showToast('🌐 Back online — syncing…');trySyncNow();}
-function onOffline(){isOnline=false;updateConnUI();showToast('📴 Offline — entries saved locally.');}
-function updateConnUI(){
-  const pill=document.getElementById('connPill'),txt=document.getElementById('connTxt'),banner=document.getElementById('offlineBanner');
-  if(isOnline){pill.className='conn-pill online';txt.textContent='Online';banner.classList.remove('show');}
-  else{pill.className='conn-pill offline';txt.textContent='Offline';banner.classList.add('show');}
-}
-function updateQueueUI(){
-  const bar=document.getElementById('queueBar'),badge=document.getElementById('pendingBadge');
-  const txt=document.getElementById('queueTxt'),sub=document.getElementById('queueSub');
-  if(offlineQueue.length>0){
-    bar.classList.add('show');badge.classList.add('show');
-    badge.textContent=`${offlineQueue.length} pending`;
-    txt.textContent=`⏳ ${offlineQueue.length} entr${offlineQueue.length===1?'y':'ies'} pending`;
-    sub.textContent=isOnline?'Tap "Sync Now" to push to office.':'Will sync when internet returns.';
-  }else{bar.classList.remove('show');badge.classList.remove('show');}
-}
-
-// ═══ CLOUD ═══
-async function fetchCloud(){
-  const r=await fetch(`${JSONBIN}/b/${binId}/latest`,{headers:{'X-Master-Key':apiKey}});
-  if(!r.ok)throw new Error();
-  cloudState=(await r.json()).record;
-  if(!cloudState.hubNames)cloudState.hubNames={...DEFAULT_HUBS};
-  if(!cloudState.officers)cloudState.officers=[];
-  if(!cloudState.bags)cloudState.bags={};
-  if(!cloudState.movements)cloudState.movements=[];
-}
-async function pushCloud(){
-  const r=await fetch(`${JSONBIN}/b/${binId}`,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':apiKey},body:JSON.stringify(cloudState)});
-  if(!r.ok)throw new Error();
-}
-
-// ═══ SYNC ═══
-async function periodicSync(){
-  if(!isOnline)return;
-  try{await fetchCloud();if(offlineQueue.length>0)await flushQueue();}catch(e){}
-}
-async function trySyncNow(){
-  if(!isOnline){showToast('📴 Still offline.');return;}
-  try{await fetchCloud();await flushQueue();showToast('✅ All entries synced!');}
-  catch(e){showToast('❌ Sync failed — will retry.');}
-}
-async function flushQueue(){
-  if(!offlineQueue.length)return;
-  await fetchCloud();
-  for(const entry of offlineQueue) applyEntry(entry,cloudState);
-  await pushCloud();
-  offlineQueue=[];
-  localStorage.setItem('ft_o_queue','[]');
-  updateQueueUI();
-}
-function saveQueue(entry){
-  offlineQueue.push(entry);
-  localStorage.setItem('ft_o_queue',JSON.stringify(offlineQueue));
-  updateQueueUI();
-}
-function applyEntry(entry,st){
-  const bag=st.bags[entry.bagId];if(!bag)return;
-  if(entry.entryType==='movement'){
-    bag.location=entry.location;bag.status=entry.status;bag.condition=entry.condition;
-    bag.capacity=entry.capacity;bag.officer=entry.officer;bag.lastMoved=entry.date;bag.notes=entry.notes;
-  }else{
-    bag.status=entry.status;bag.officer=entry.officer;bag.lastMoved=entry.date;
-    if(entry.notes)bag.notes=entry.notes;
-  }
-  st.movements.push(entry);
-}
-
-// ═══ FORMS ═══
-function populateForms(){
-  const offs=cloudState.officers||[];
-  ['mOfficer','sOfficer'].forEach(id=>{
-    const s=document.getElementById(id);
-    s.innerHTML='<option value="">— Select your name —</option>';
-    offs.forEach(o=>s.innerHTML+=`<option>${o}</option>`);
-  });
-  ['mBag','sBagSel'].forEach(id=>{
-    const s=document.getElementById(id);
-    s.innerHTML='<option value="">— Select bag —</option>';
-    for(let i=1;i<=60;i++)s.innerHTML+=`<option>Bag ${String(i).padStart(2,'0')}</option>`;
-  });
-  const loc=document.getElementById('mLocation');
-  loc.innerHTML='<option value="">— Select location —</option>';
-  Object.keys(DEFAULT_HUBS).forEach(k=>loc.innerHTML+=`<option value="${k}">${cloudState.hubNames[k]||k}</option>`);
-}
-function dispLoc(k){return cloudState.hubNames[k]||k;}
-
-// ═══ TABS ═══
-function switchTab(tab,btn){
-  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(el=>el.classList.remove('active'));
-  document.getElementById('tab-'+tab).classList.add('active');btn.classList.add('active');
-  clearAllCards();mStatus='';sStatus='';
-}
-
-// ═══ STATUS CARDS ═══
-function selectStatus(form,val,el){
-  const gridId=form==='m'?'mStatusGrid':'sStatusGrid';
-  document.querySelectorAll(`#${gridId} .sc`).forEach(c=>{c.className='sc';});
-  el.className=`sc sel-${val}`;
-  if(form==='m')mStatus=val;else sStatus=val;
-}
-function clearAllCards(){
-  document.querySelectorAll('.sc').forEach(c=>c.className='sc');
-}
-
-// ═══ CONDITION ═══
-function setCond(c){
-  mCond=c;
-  document.getElementById('mCondG').classList.toggle('active',c==='good');
-  document.getElementById('mCondD').classList.toggle('active',c==='damaged');
-}
-
-// ═══ CURRENT STATUS DISPLAY ═══
-function showCurStatus(){
-  const bagId=document.getElementById('sBagSel').value;
-  const box=document.getElementById('curStatusBox');
-  if(!bagId){box.style.display='none';return;}
-  const bag=cloudState.bags[bagId];
-  if(!bag){box.style.display='none';return;}
-  const cfg=STATUS_CFG[bag.status]||STATUS_CFG.available;
-  document.getElementById('curStatusVal').textContent=`${cfg.icon} ${cfg.label}`;
-  document.getElementById('curStatusLoc').textContent=`📍 ${dispLoc(bag.location)} · 👤 ${bag.officer||'—'}`;
-  box.style.display='block';
-}
-
-// ═══ SUBMIT MOVEMENT ═══
-async function submitMovement(){
-  const officer=document.getElementById('mOfficer').value;
-  const bagId=document.getElementById('mBag').value;
-  const date=document.getElementById('mDate').value;
-  const locKey=document.getElementById('mLocation').value;
-  const cap=parseInt(document.getElementById('mCap').value);
-  const notes=document.getElementById('mNotes').value;
-
-  if(!officer||!bagId||!date||!locKey||!mStatus||!cap){
-    showToast('⚠️ Please fill all required fields and select a status.');return;
-  }
-
-  const finalStatus=mCond==='damaged'?'damaged':mStatus;
-  const entry={entryType:'movement',bagId,date,location:locKey,officer,status:finalStatus,condition:mCond,capacity:cap,notes,timestamp:Date.now()};
-
-  const btn=document.getElementById('mBtn');btn.textContent='Saving…';btn.disabled=true;
-
-  let synced=false;
-  if(isOnline){
-    try{await fetchCloud();applyEntry(entry,cloudState);await pushCloud();synced=true;}
-    catch(e){saveQueue(entry);}
-  }else{saveQueue(entry);}
-
-  btn.textContent='✅ Submit Movement';btn.disabled=false;
-  showSuccess('movement',bagId,locKey,synced);
-  clearMove();
-}
-
-// ═══ SUBMIT STATUS ═══
-async function submitStatus(){
-  const officer=document.getElementById('sOfficer').value;
-  const bagId=document.getElementById('sBagSel').value;
-  const notes=document.getElementById('sNotes').value;
-
-  if(!officer||!bagId||!sStatus){
-    showToast('⚠️ Please select your name, bag, and new status.');return;
-  }
-
-  const bag=cloudState.bags[bagId];
-  const date=new Date().toISOString().split('T')[0];
-  const entry={entryType:'status',bagId,date,location:bag?bag.location:'Warehouse',officer,status:sStatus,condition:bag?bag.condition:'good',capacity:bag?bag.capacity:0,notes,timestamp:Date.now()};
-
-  const btn=document.getElementById('sBtn');btn.textContent='Saving…';btn.disabled=true;
-
-  let synced=false;
-  if(isOnline){
-    try{await fetchCloud();applyEntry(entry,cloudState);await pushCloud();synced=true;}
-    catch(e){saveQueue(entry);}
-  }else{saveQueue(entry);}
-
-  btn.textContent='🔄 Update Status';btn.disabled=false;
-  showSuccess('status',bagId,null,synced);
-  clearStatus();
-}
-
-// ═══ CLEAR FORMS ═══
-function clearMove(){
-  ['mOfficer','mBag','mLocation'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('mCap').value='';document.getElementById('mNotes').value='';
-  document.getElementById('mDate').value=new Date().toISOString().split('T')[0];
-  document.querySelectorAll('#mStatusGrid .sc').forEach(c=>c.className='sc');
-  mStatus='';setCond('good');
-}
-function clearStatus(){
-  ['sOfficer','sBagSel'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('sNotes').value='';
-  document.getElementById('curStatusBox').style.display='none';
-  document.querySelectorAll('#sStatusGrid .sc').forEach(c=>c.className='sc');
-  sStatus='';
-}
-
-// ═══ SUCCESS ═══
-function showSuccess(type,bagId,locKey,synced){
-  const cfg=STATUS_CFG[type==='status'?sStatus:mStatus]||{};
-  document.getElementById('sIcon').textContent=type==='movement'?'✅':'🔄';
-  document.getElementById('sTitle').textContent=type==='movement'?'Movement Recorded!':'Status Updated!';
-  document.getElementById('sSub').textContent=type==='movement'
-    ?`${bagId} moved to ${dispLoc(locKey)}.${synced?' Office dashboard updated live.':''}`
-    :`${bagId} marked as "${cfg.label||sStatus}".${synced?' Office updated live.':''}`;
-  document.getElementById('sOffline').className=synced?'s-offline':'s-offline show';
-  document.getElementById('successOverlay').classList.add('show');
-}
-function closeSuccess(){document.getElementById('successOverlay').classList.remove('show');}
-
-// ═══ TOAST ═══
-function showToast(msg){
-  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),3500);
-}
-</script>
-</body>
-</html>
+## Adding / Editing Officers or Hub Names
+Go to Office Dashboard → **⚙️ Settings** tab
+- Add, rename, or remove field officers
+- Rename any hub to its actual location name
+- Hit Save — syncs to all devices instantly
