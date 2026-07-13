@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FumiTrack Pro — App Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --forest:#1A3A2A;--forest-light:#2D5A40;
+  --amber:#D4860B;--amber-light:#FEF3C7;
+  --green:#16A34A;--green-light:#DCFCE7;
+  --teal:#0E7490;--teal-light:#CFFAFE;
+  --bg:#F0EDE6;--card:#FFF;--text:#111827;--muted:#6B7280;--border:#E5E7EB;
+  --shadow:0 4px 16px rgba(0,0,0,0.10);--shadow-lg:0 12px 40px rgba(0,0,0,0.15);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+
+/* HERO */
+.hero{
+  background:linear-gradient(145deg,var(--forest) 0%,var(--forest-light) 100%);
+  color:white;padding:48px 24px 56px;text-align:center;position:relative;overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.hero-inner{position:relative;z-index:1;max-width:560px;margin:0 auto;}
+.hero-icon{
+  width:88px;height:88px;border-radius:22px;overflow:hidden;
+  margin:0 auto 20px;box-shadow:0 8px 32px rgba(0,0,0,0.3);
+}
+.hero-icon img{width:100%;height:100%;}
+.hero h1{
+  font-family:'Space Grotesk',sans-serif;font-size:32px;font-weight:700;
+  letter-spacing:-0.5px;margin-bottom:8px;
+}
+.hero p{font-size:15px;opacity:0.8;line-height:1.6;max-width:400px;margin:0 auto;}
+.hero-badges{display:flex;gap:10px;justify-content:center;margin-top:18px;flex-wrap:wrap;}
+.hbadge{
+  padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;
+  background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);
+}
+
+/* CARDS SECTION */
+.cards-section{padding:0 20px;margin-top:-32px;max-width:760px;margin-left:auto;margin-right:auto;width:100%;}
+.cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+
+.app-card{
+  background:var(--card);border-radius:20px;padding:28px 24px;
+  box-shadow:var(--shadow-lg);border:2px solid transparent;
+  transition:transform 0.2s,box-shadow 0.2s;
+  display:flex;flex-direction:column;
+}
+.app-card:hover{transform:translateY(-4px);box-shadow:0 20px 50px rgba(0,0,0,0.15);}
+.app-card.office{border-color:rgba(14,116,144,0.2);}
+.app-card.officer{border-color:rgba(212,134,11,0.2);}
+
+.card-icon{
+  width:56px;height:56px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;margin-bottom:16px;flex-shrink:0;
+}
+.office .card-icon{background:var(--teal-light);}
+.officer .card-icon{background:var(--amber-light);}
+
+.card-tag{
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;
+  margin-bottom:6px;
+}
+.office .card-tag{color:var(--teal);}
+.officer .card-tag{color:var(--amber);}
+
+.card-title{
+  font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;
+  color:var(--forest);margin-bottom:8px;
+}
+.card-desc{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:20px;flex:1;}
+
+.feature-list{margin-bottom:22px;}
+.feature-item{
+  display:flex;align-items:center;gap:8px;
+  font-size:12px;color:var(--text);padding:4px 0;
+}
+.feature-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.office .feature-dot{background:var(--teal);}
+.officer .feature-dot{background:var(--amber);}
+
+.open-btn{
+  display:block;width:100%;padding:13px;border:none;border-radius:12px;
+  font-family:'DM Sans',sans-serif;font-size:15px;font-weight:700;
+  cursor:pointer;text-decoration:none;text-align:center;
+  transition:all 0.2s;
+}
+.office .open-btn{background:var(--teal);color:white;}
+.office .open-btn:hover{background:#0C6481;}
+.officer .open-btn{background:var(--amber);color:white;}
+.officer .open-btn:hover{background:#B8720A;}
+
+/* INSTALL GUIDE */
+.install-section{max-width:760px;margin:24px auto 0;padding:0 20px;}
+.install-card{background:var(--card);border-radius:16px;padding:24px;box-shadow:var(--shadow);}
+.install-title{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;color:var(--forest);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.install-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.install-step{background:var(--bg);border-radius:10px;padding:14px;}
+.install-step-title{font-size:13px;font-weight:700;color:var(--forest);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.install-step ol{padding-left:16px;}
+.install-step li{font-size:12px;color:var(--muted);margin-bottom:4px;line-height:1.5;}
+
+/* CREDENTIALS BOX */
+.creds-section{max-width:760px;margin:16px auto 0;padding:0 20px;}
+.creds-card{
+  background:linear-gradient(135deg,var(--forest) 0%,var(--forest-light) 100%);
+  border-radius:16px;padding:22px 24px;color:white;
+}
+.creds-title{font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.creds-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.cred-item{background:rgba(255,255,255,0.12);border-radius:10px;padding:12px 14px;}
+.cred-label{font-size:11px;opacity:0.7;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;}
+.cred-value{
+  font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;
+  word-break:break-all;cursor:pointer;display:flex;align-items:center;gap:6px;
+}
+.copy-hint{font-size:10px;opacity:0.6;margin-top:6px;}
+.creds-note{font-size:12px;opacity:0.7;margin-top:14px;line-height:1.6;}
+
+/* FOOTER */
+footer{
+  text-align:center;padding:28px 20px;margin-top:28px;
+  font-size:12px;color:var(--muted);
+}
+footer strong{color:var(--forest);}
+
+/* COPY TOAST */
+.copy-toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);
+  background:var(--forest);color:white;padding:10px 20px;border-radius:20px;
+  font-size:13px;font-weight:600;box-shadow:var(--shadow-lg);
+  opacity:0;transition:all 0.3s;z-index:999;white-space:nowrap;
+}
+.copy-toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+
+@media(max-width:600px){
+  .hero h1{font-size:26px;}
+  .cards-grid{grid-template-columns:1fr;}
+  .install-grid{grid-template-columns:1fr;}
+  .creds-grid{grid-template-columns:1fr;}
+  .hero{padding:36px 20px 52px;}
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-icon"><img src="icon-192.png" alt="FumiTrack"/></div>
+    <h1>FumiTrack Pro</h1>
+    <p>Hermetic Fumigation Bag Tracking System — live across 80 hubs and 1 warehouse</p>
+    <div class="hero-badges">
+      <span class="hbadge">🌿 60 Bags</span>
+      <span class="hbadge">🏠 80 Hubs + Warehouse</span>
+      <span class="hbadge">👤 14 Officers</span>
+      <span class="hbadge">☁️ Live Sync</span>
+    </div>
+  </div>
+</div>
+
+<!-- APP CARDS -->
+<div class="cards-section">
+  <div class="cards-grid">
+
+    <!-- OFFICE -->
+    <div class="app-card office">
+      <div class="card-icon">🖥️</div>
+      <div class="card-tag">Admin · Office</div>
+      <div class="card-title">Office Dashboard</div>
+      <div class="card-desc">Full live dashboard for office staff and management to monitor all bags in real time.</div>
+      <div class="feature-list">
+        <div class="feature-item"><div class="feature-dot"></div>Live KPI summary</div>
+        <div class="feature-item"><div class="feature-dot"></div>Full bag grid & detail view</div>
+        <div class="feature-item"><div class="feature-dot"></div>Movement log & CSV export</div>
+        <div class="feature-item"><div class="feature-dot"></div>Analytics & trend charts</div>
+        <div class="feature-item"><div class="feature-dot"></div>Hub map & officer management</div>
+        <div class="feature-item"><div class="feature-dot"></div>Editable hub names</div>
+      </div>
+      <a class="open-btn" href="FumiTrack_Office.html">Open Office Dashboard →</a>
+    </div>
+
+    <!-- OFFICER -->
+    <div class="app-card officer">
+      <div class="card-icon">📋</div>
+      <div class="card-tag">Field · Officers</div>
+      <div class="card-title">Officer App</div>
+      <div class="card-desc">Simple entry app for field officers to log bag movements and update fumigation status.</div>
+      <div class="feature-list">
+        <div class="feature-item"><div class="feature-dot"></div>Log bag movements</div>
+        <div class="feature-item"><div class="feature-dot"></div>Quick status update after offload</div>
+        <div class="feature-item"><div class="feature-dot"></div>Works offline — auto syncs</div>
+        <div class="feature-item"><div class="feature-dot"></div>Pending queue with sync counter</div>
+        <div class="feature-item"><div class="feature-dot"></div>Installs as phone app</div>
+        <div class="feature-item"><div class="feature-dot"></div>No technical knowledge needed</div>
+      </div>
+      <a class="open-btn" href="FumiTrack_Officer.html">Open Officer App →</a>
+    </div>
+
+  </div>
+</div>
+
+<!-- CREDENTIALS BOX -->
+<div class="creds-section">
+  <div class="creds-card">
+    <div class="creds-title">🔑 Setup Credentials <span style="font-size:12px;font-weight:400;opacity:0.7">(needed when opening apps for the first time on a new device)</span></div>
+    <div class="creds-grid">
+      <div class="cred-item">
+        <div class="cred-label">JSONBin API Key</div>
+        <div class="cred-value" onclick="copyText(this,'API Key')" id="apiKeyVal">
+          <span>Click to reveal & copy</span> 📋
+        </div>
+        <div class="copy-hint">Tap to copy</div>
+      </div>
+      <div class="cred-item">
+        <div class="cred-label">Bin ID</div>
+        <div class="cred-value" onclick="copyText(this,'Bin ID')" id="binIdVal">
+          <span>Click to reveal & copy</span> 📋
+        </div>
+        <div class="copy-hint">Tap to copy</div>
+      </div>
+    </div>
+    <div class="creds-note">
+      ⚠️ <strong>Admin only:</strong> Edit this page to fill in your actual API key and Bin ID below in the script. These are needed when setting up on a new device. Keep this page private or share only with trusted staff.
+    </div>
+  </div>
+</div>
+
+<!-- INSTALL GUIDE -->
+<div class="install-section">
+  <div class="install-card">
+    <div class="install-title">📲 How to Install as a Phone App</div>
+    <div class="install-grid">
+      <div class="install-step">
+        <div class="install-step-title">🤖 Android (Chrome)</div>
+        <ol>
+          <li>Open the Officer App link in <strong>Chrome</strong></li>
+          <li>Tap the ⋮ menu (top right)</li>
+          <li>Tap <strong>"Add to Home Screen"</strong> or <strong>"Install App"</strong></li>
+          <li>Tap Add — icon appears on home screen</li>
+        </ol>
+      </div>
+      <div class="install-step">
+        <div class="install-step-title">🍎 iPhone (Safari)</div>
+        <ol>
+          <li>Open the Officer App link in <strong>Safari</strong></li>
+          <li>Tap the Share button (box with arrow ↑)</li>
+          <li>Scroll down → tap <strong>"Add to Home Screen"</strong></li>
+          <li>Tap Add — icon appears on home screen</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <strong>FumiTrack Pro</strong> · Hermetic Fumigation Bag Tracker · Built for WARC field operations<br/>
+  <span style="margin-top:4px;display:block">All data synced live via JSONBin · Offline-first · Works on all devices</span>
+</footer>
+
+<div class="copy-toast" id="copyToast"></div>
+
+<script>
+// ══════════════════════════════════════
+// ADMIN: FILL IN YOUR CREDENTIALS HERE
+// ══════════════════════════════════════
+const CREDENTIALS = {
+  apiKey: '$2a$10$UMtiHSMnmVstU0jUQxsnI.mXMbrkwf7mNYAcdyR1C4UiqqH.jar3O',
+  binId:  '6a3ba006f5f4af5e2927ef09'
+};
+// ══════════════════════════════════════
+
+// Show credentials (masked until clicked)
+let revealed = false;
+function copyText(el, label) {
+  const value = label === 'API Key' ? CREDENTIALS.apiKey : CREDENTIALS.binId;
+  if (value.startsWith('PASTE_')) {
+    showToast('⚠️ Admin needs to fill in credentials first');
+    return;
+  }
+  if (!revealed) {
+    document.getElementById('apiKeyVal').innerHTML = `<span>${maskKey(CREDENTIALS.apiKey)}</span> 📋`;
+    document.getElementById('binIdVal').innerHTML = `<span>${CREDENTIALS.binId}</span> 📋`;
+    revealed = true;
+  }
+  navigator.clipboard.writeText(value).then(() => {
+    showToast(`✅ ${label} copied!`);
+    el.innerHTML = `<span style="color:#4ADE80">${label === 'API Key' ? maskKey(value) : value}</span> ✅`;
+    setTimeout(() => {
+      el.innerHTML = `<span>${label === 'API Key' ? maskKey(value) : value}</span> 📋`;
+    }, 2000);
+  }).catch(() => {
+    // Fallback for older browsers
+    const ta = document.createElement('textarea');
+    ta.value = value; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast(`✅ ${label} copied!`);
+  });
+}
+
+function maskKey(key) {
+  if (!key || key.startsWith('PASTE_')) return key;
+  return key.substring(0, 8) + '••••••••••••••••' + key.slice(-4);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('copyToast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
