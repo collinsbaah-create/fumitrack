@@ -360,22 +360,18 @@ DEFAULT_HUBS['Warehouse']='Warehouse';
 for(let i=1;i<=80;i++) DEFAULT_HUBS[`Hub ${String(i).padStart(2,'0')}`]=`Hub ${String(i).padStart(2,'0')}`;
 
 // ═══ STATE ═══
-let apiKey='',binId='';
+let apiKey='$2a$10$UMtiHSMnmVstU0jUQxsnI.mXMbrkwf7mNYAcdyR1C4UiqqH.jar3O', binId='6a3ba006f5f4af5e2927ef09';
 let cloudState={bags:{},movements:[],hubNames:{...DEFAULT_HUBS},officers:[]};
 let offlineQueue=[];
 let mStatus='',sStatus='',mCond='good';
 let isOnline=navigator.onLine;
 
-// ═══ SETUP ═══
+// ═══ AUTO LAUNCH — no setup screen needed ═══
 window.addEventListener('DOMContentLoaded',async()=>{
-  const k=localStorage.getItem('ft_o_key'),b=localStorage.getItem('ft_o_bin');
   offlineQueue=JSON.parse(localStorage.getItem('ft_o_queue')||'[]');
-  if(k&&b){
-    apiKey=k;binId=b;
-    document.getElementById('setupScreen').style.display='none';
-    document.getElementById('app').style.display='block';
-    await initApp();
-  }
+  document.getElementById('setupScreen').style.display='none';
+  document.getElementById('app').style.display='block';
+  await initApp();
 });
 
 async function doSetup(){
